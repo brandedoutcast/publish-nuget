@@ -1,0 +1,24 @@
+name: Publish NuGet
+author: Rohith Reddy (@rohith)
+description: Build, Pack & Publish NuGet packages with dotnet (.net core) on project version change
+
+inputs:
+    project_dir:
+        description: Project (csproj) directory path relative from the root of repository
+        required: false
+        default: .
+    tag_format:
+        description: Format of the tag to be created, `*` is placeholder for actual version
+        required: false
+        default: v*
+    nuget_key:
+        description: API key for the NuGet feed
+        required: false
+
+runs:
+    using: node12
+    main: index.js
+
+branding:
+    icon: package
+    color: blue
