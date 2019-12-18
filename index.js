@@ -1,10 +1,10 @@
 const resolve = require("path").resolve,
-    execSync = require("child_process").execSync,
+    spawnSync = require("child_process").spawnSync,
     { readdirSync, readFileSync } = require("fs")
 
 function run() {
     // check fetch-depth
-    const commitCount = execSync("git rev-list --count HEAD", { encoding: "utf-8" })
+    const commitCount = parseInt(runCap("git rev-list --count HEAD"))
     if (commitCount < 2) {
         failure("😤 commit history needs to be >= 2")
         return
@@ -22,9 +22,9 @@ function run() {
 
     // check for version changes
     const projName = projFiles[0],
-        projPath = resolve(projDir, projName),
+        projPath = resolve(projDir, projName).replace("\\", "\\\\"),
         versionRegex = /<Version>(.*)<\/Version>/,
-        gitDiff = execSync(`git diff -U0 HEAD^ -- ${projPath}`, { encoding: "utf-8" }),
+        gitDiff = runCap(`git diff -U0 HEAD^ -- ${projPath}`),
         isVersionChanged = versionRegex.test(gitDiff)
 
     if (!isVersionChanged) {
@@ -39,15 +39,15 @@ function run() {
         newVersion = versionRegex.exec(projContents)[1],
         tagFormat = process.env.INPUT_TAG_FORMAT,
         tag = tagFormat.replace("*", newVersion),
-        istagPresent = execSync("git tag -l --contains", { encoding: "utf-8" }).indexOf(tag) >= 0
+        istagPresent = runCap("git tag -l --contains").indexOf(tag) >= 0
 
     if (istagPresent) {
         console.log(`😢 tag named ${newVersion} already exists`)
         return
     }
 
-    execSync(`git tag ${tag}`, { encoding: "utf-8" })
-    execSync(`git push origin ${tag}`, { encoding: "utf-8" })
+    runProc(`git tag ${tag}`)
+    runProc(`git push origin ${tag}`)
 
     // pack & push
     const nugetKey = process.env.INPUT_NUGET_KEY
@@ -55,15 +55,24 @@ function run() {
     if (!nugetKey)
         return
 
-    if (!execSync("command -v dotnet", { encoding: "utf-8" })) {
+    if (!runCap("command -v dotnet")) {
         failure("😭 dotnet not found")
         return
     }
 
-    execSync(`dotnet pack -c Release ${projPath} -o .`, { encoding: "utf-8" })
+    runProc(`dotnet pack -c Release ${projPath} -o .`)
 
     if (nugetKey)
-        execSync(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${nugetKey}`, { encoding: "utf-8" })
+        runProc(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${nugetKey}`)
+}
+
+function runCap(cmd) { return runCmd(cmd, { encoding: "utf-8" }).stdout }
+
+function runProc(cmd) { runCmd(cmd, { encoding: "utf-8", stdio: [process.stdin, process.stdout, process.stderr] }) }
+
+function runCmd(cmd, options) {
+    const input = cmd.split(" "), tool = input[0], args = input.slice(1)
+    return spawnSync(tool, args, options)
 }
 
 function failure(msg) {
