@@ -52,18 +52,18 @@ function run() {
     // pack & push
     const nugetKey = process.env.INPUT_NUGET_KEY
 
-    if (!nugetKey)
+    if (!nugetKey) {
+        console.log(`😢 no nuget_key input supplied`)
         return
+    }
 
-    if (!runCap("command -v dotnet")) {
+    if (!runCap("dotnet --version")) {
         failure("😭 dotnet not found")
         return
     }
 
     runProc(`dotnet pack -c Release ${projPath} -o .`)
-
-    if (nugetKey)
-        runProc(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${nugetKey}`)
+    runProc(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${nugetKey}`)
 }
 
 function runCap(cmd) { return runCmd(cmd, { encoding: "utf-8" }).stdout }
