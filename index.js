@@ -55,7 +55,7 @@ function run() {
     if (!nugetKey)
         return
 
-    if (!runCap("command -v dotnet")) {
+    if (!runCap("dotnet --version")) {
         failure("😭 dotnet not found")
         return
     }
