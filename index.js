@@ -6,7 +6,7 @@ function run() {
     // check fetch-depth
     const commitCount = parseInt(runCap("git rev-list --count HEAD"))
     if (commitCount < 2) {
-        failure("😤 commit history needs to be >= 2")
+        failed("😤 git commit history must be >= 2")
         return
     }
 
@@ -16,7 +16,7 @@ function run() {
         projFiles = readdirSync(projDir).filter(f => f.endsWith(".csproj"))
 
     if (projFiles.length === 0) {
-        failure("😭 project not found")
+        failed("😭 project not found")
         return
     }
 
@@ -28,21 +28,21 @@ function run() {
         isVersionChanged = versionRegex.test(gitDiff)
 
     if (!isVersionChanged) {
-        console.log(`🥱 no version change in ${projName}`)
+        console.log(`🥱 no version change for ${projName}`)
         return
     }
 
-    console.log(`👍 found version change in ${projName}`)
+    console.log(`👍 found a new version for ${projName}`)
 
     // create tag
     const projContents = readFileSync(projPath, { encoding: "utf-8" }),
         newVersion = versionRegex.exec(projContents)[1],
         tagFormat = process.env.INPUT_TAG_FORMAT,
         tag = tagFormat.replace("*", newVersion),
-        istagPresent = runCap("git tag -l --contains").indexOf(tag) >= 0
+        istagPresent = runCap(`git ls-remote --tags origin ${tag}`).indexOf(tag) >= 0
 
     if (istagPresent) {
-        console.log(`😢 tag named ${newVersion} already exists`)
+        console.log(`##[warning]😢 tag ${newVersion} already exists`)
         return
     }
 
@@ -53,17 +53,21 @@ function run() {
     const nugetKey = process.env.INPUT_NUGET_KEY
 
     if (!nugetKey) {
-        console.log(`😢 no nuget_key input supplied`)
+        console.log(`##[warning]😢 nuget_key not found`)
         return
     }
 
     if (!runCap("dotnet --version")) {
-        failure("😭 dotnet not found")
+        failed("😭 dotnet not found")
         return
     }
 
     runProc(`dotnet pack -c Release ${projPath} -o .`)
-    runProc(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${nugetKey}`)
+    const out = runCap(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${nugetKey}`)
+    const errorRegex = /(error: Response status code does not indicate success.*)/
+
+    if (errorRegex.test(out))
+        failed(`😭 ${errorRegex.exec(out)[1]}`)
 }
 
 function runCap(cmd) { return runCmd(cmd, { encoding: "utf-8" }).stdout }
@@ -75,9 +79,9 @@ function runCmd(cmd, options) {
     return spawnSync(tool, args, options)
 }
 
-function failure(msg) {
+function failed(msg) {
     process.exitCode = 1
-    console.log(msg)
+    console.log(`##[error]${msg}`)
 }
 
 run()
