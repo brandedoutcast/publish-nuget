@@ -13,8 +13,8 @@ function run() {
     // find project
     const repoDir = process.env.GITHUB_WORKSPACE,
         projDir = resolve(repoDir, process.env.INPUT_PROJECT_DIR),
-        projFiles = readdirSync(projDir).filter(f => f.endsWith(".csproj"))
-
+        projFiles = readdirSync(projDir).filter(f => f.endsWith(".csproj") || f.endsWith(".fsproj"))
+    
     if (projFiles.length === 0) {
         failed("😭 project not found")
         return
