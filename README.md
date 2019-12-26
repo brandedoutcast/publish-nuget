@@ -17,11 +17,9 @@ jobs:
     steps:
       # Checkout
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2 # This must be >= 2 to compare commits
 
-      # Optional step, add only for a specific dotnet version that doesn't come with ubuntu-latest
-      # For a list of software that comes pre-installed with ubuntu-latest visit bit.ly/2synnZl
+      # Optional step, add only for a specific dotnet version that doesn't come with ubuntu-latest / windows-latest
+      # Visit bit.ly/2synnZl for a list of software that comes pre-installed with ubuntu-latest / windows-latest
       # - name: Setup dotnet
       #   uses: actions/setup-dotnet@v1
       #   with:
@@ -36,7 +34,8 @@ jobs:
         #   nuget_key: ${{secrets.NUGET_API_KEY}} # nuget.org API key
 ```
 
-Project version updates are monitored on every push / PR merge to master & a new tag is created to denote the updated version. If a `nuget_key` is passed then the project gets built, packed & published to nuget.org
+- Project version updates are monitored on every push / PR merge to master & a new tag is created to denote the updated version
+- If a `nuget_key` is present then the project gets built, packed & published to nuget.org
 
 ## Inputs
 All these inputs are optional

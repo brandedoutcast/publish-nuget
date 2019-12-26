@@ -3,48 +3,39 @@ const resolve = require("path").resolve,
     { readdirSync, readFileSync } = require("fs")
 
 function run() {
-    // check fetch-depth
-    const commitCount = parseInt(runCap("git rev-list --count HEAD"))
-    if (commitCount < 2) {
-        failed("😤 git commit history must be >= 2")
-        return
-    }
-
     // find project
     const repoDir = process.env.GITHUB_WORKSPACE,
         projDir = resolve(repoDir, process.env.INPUT_PROJECT_DIR),
         projFiles = readdirSync(projDir).filter(f => f.endsWith(".csproj") || f.endsWith(".fsproj"))
-    
+
     if (projFiles.length === 0) {
         failed("😭 project not found")
         return
     }
 
-    // check for version changes
+    // check for new version
     const projName = projFiles[0],
-        projPath = resolve(projDir, projName).replace("\\", "\\\\"),
+        projPath = resolve(projDir, projName),
         versionRegex = /<Version>(.*)<\/Version>/,
-        gitDiff = runCap(`git diff -U0 HEAD^ -- ${projPath}`),
-        isVersionChanged = versionRegex.test(gitDiff)
+        projDetails = readFileSync(projPath, { encoding: "utf-8" }),
+        isVersionPresent = versionRegex.test(projDetails)
 
-    if (!isVersionChanged) {
-        console.log(`🥱 no version change for ${projName}`)
+    if (!isVersionPresent) {
+        console.log(`##[warning]😢 skipping due to no version`)
         return
     }
 
-    console.log(`👍 found a new version for ${projName}`)
-
-    // create tag
-    const projContents = readFileSync(projPath, { encoding: "utf-8" }),
-        newVersion = versionRegex.exec(projContents)[1],
+    const currentVersion = versionRegex.exec(projDetails)[1],
         tagFormat = process.env.INPUT_TAG_FORMAT,
-        tag = tagFormat.replace("*", newVersion),
+        tag = tagFormat.replace("*", currentVersion),
         istagPresent = runCap(`git ls-remote --tags origin ${tag}`).indexOf(tag) >= 0
 
     if (istagPresent) {
-        console.log(`##[warning]😢 tag ${newVersion} already exists`)
+        console.log(`##[warning]😢 tag ${currentVersion} already exists`)
         return
     }
+
+    console.log(`👍 found a new version (${currentVersion}) of ${projName}`)
 
     runProc(`git tag ${tag}`)
     runProc(`git push origin ${tag}`)
