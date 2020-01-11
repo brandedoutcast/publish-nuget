@@ -1,5 +1,5 @@
 # ✨ Publish NuGet
-GitHub action to build, pack & publish nuget pacakges automatically when a project version is updated
+GitHub action to build, pack & publish nuget packages automatically when a project version is updated
 
 ## Usage
 Create a new `.github/workflows/publish-nuget.yml` file:
