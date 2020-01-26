@@ -2,9 +2,9 @@
 GitHub action to build, pack & publish nuget packages automatically when a project version is updated
 
 ## Usage
-Create a new `.github/workflows/publish-nuget.yml` file:
+Create new `.github/workflows/publish.yml` file:
 
-```yaml
+```yml
 name: publish to nuget
 on:
   push:
@@ -12,42 +12,47 @@ on:
       - master # Your default release branch
 jobs:
   publish:
-    name: publish to nuget
+    name: list on nuget
     runs-on: ubuntu-latest
     steps:
-      # Checkout
       - uses: actions/checkout@v2
 
-      # Optional step, add only for a specific dotnet version that doesn't come with ubuntu-latest / windows-latest
-      # Visit bit.ly/2synnZl for a list of software that comes pre-installed with ubuntu-latest / windows-latest
+      # Required for a specific dotnet version that doesn't come with ubuntu-latest / windows-latest
+      # Visit bit.ly/2synnZl to see the list of SDKs that are pre-installed with ubuntu-latest / windows-latest
       # - name: Setup dotnet
       #   uses: actions/setup-dotnet@v1
       #   with:
       #     dotnet-version: 3.1.100
       
       # Publish
-      - name: Publish if version is updated
-        uses: rohith/publish-nuget@v1
-        # with: # All inputs are optional (details given below)
-        #   project_dir: src # Defaults to repository root
-        #   tag_format: v* # [*] gets replaced with version
-        #   nuget_key: ${{secrets.NUGET_API_KEY}} # nuget.org API key
+      - name: publish on version change
+        uses: rohith/publish-nuget@v2
+        with:
+          PROJECT_FILE_PATH: Core/Core.csproj # Relative to repository root
+          # VERSION_FILE_PATH: Directory.Build.props # Filepath with version info, relative to repository root. Defaults to project file
+          # VERSION_REGEX: <Version>(.*)<\/Version> # Regex pattern to extract version info in a capturing group
+          # TAG_COMMIT: true # Flag to enable / disalge git tagging
+          # TAG_FORMAT: v* # Format of the git tag, [*] gets replaced with version
+          # NUGET_KEY: ${{secrets.NUGET_API_KEY}} # nuget.org API key
 ```
 
-- Project version updates are monitored on every push / PR merge to master & a new tag is created to denote the updated version
-- If a `nuget_key` is present then the project gets built, packed & published to nuget.org
+- With all settings on default, updates to project version are monitored on every push / PR merge to master & a new tag is created
+- If a `NUGET_KEY` is present then the project gets built, packed & published to nuget.org
 
 ## Inputs
-All these inputs are optional
+Most of the inputs are optional
 
-Input | Description
---- | ---
-project_dir | Directory path containing the project file, defaults to repository root
-tag_format | Defaults to `v*` - `[*]` is a placeholder for the actual project version
-nuget_key | API key to authorize the package upload to nuget.org
+Input | Default Value | Description
+--- | --- | ---
+PROJECT_FILE_PATH | | File path of the project to be packaged, relative to repository root
+VERSION_FILE_PATH | `[PROJECT_FILE_PATH]` | File path containing version info, relative to repository root
+VERSION_REGEX | `<Version>(.*)<\/Version>` | Regex pattern to extract version info in a capturing group
+TAG_COMMIT | `true` | Flag to enable / disable git tagging
+TAG_FORMAT | `v*` | `[*]` is a placeholder for the actual project version
+NUGET_KEY | | API key to authorize the package upload to nuget.org
 
 **Note:**  
-`project_dir` & `tag_format` have default values but a package cannot be published without the `nuget_key`
+For multiple projects, every input except `PROJECT_FILE_PATH` can be given as `env` variable at [job / workflow level](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#env)
 
 ## License
 [MIT](LICENSE)

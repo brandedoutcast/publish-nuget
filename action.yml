@@ -1,17 +1,27 @@
 name: Publish NuGet
 author: Rohith Reddy (@rohith)
-description: Build, Pack & Publish NuGet packages with dotnet (.net core) on project version change
+description: Build, Pack & Publish NuGet packages with dotnet (.net) core on project version change
 
 inputs:
-    project_dir:
-        description: Project (csproj) directory path relative from the root of repository
+    PROJECT_FILE_PATH:
+        description: Filepath of the project to be packaged, relative to root of repository
+        required: true
+    VERSION_FILE_PATH:
+        description: Filepath containing version info, relative to root of repository. Defaults to `PROJECT_FILE_PATH` if not specified
         required: false
-        default: .
-    tag_format:
-        description: Format of the tag to be created, `*` is placeholder for actual version
+    VERSION_REGEX:
+        description: Regex (with version in a capturing group) to extract the version from `VERSION_FILE_PATH`
+        required: false
+        default: <Version>(.*)<\/Version>
+    TAG_COMMIT:
+        description: Whether to create a tag when there's a version change or not
+        required: false
+        default: true
+    TAG_FORMAT:
+        description: Format of the tag, `*` is the placeholder for actual version
         required: false
         default: v*
-    nuget_key:
+    NUGET_KEY:
         description: API key for the NuGet feed
         required: false
 
