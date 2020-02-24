@@ -24,6 +24,9 @@ inputs:
     NUGET_KEY:
         description: API key for the NuGet feed
         required: false
+    PACKAGE_NAME:
+        description: NuGet package name to check when looking for already-published versions
+        required: false
 
 runs:
     using: node12
