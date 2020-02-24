@@ -24,7 +24,9 @@ class Action {
     }
 
     _execCmd(cmd, options) {
-        const INPUT = cmd.split(" "), TOOL = INPUT[0], ARGS = INPUT.slice(1)
+        const INPUT = cmd.split(" "),
+            TOOL = INPUT[0],
+            ARGS = INPUT.slice(1)
         return spawnSync(TOOL, ARGS, options)
     }
 
@@ -102,7 +104,7 @@ class Action {
             let body = ""
 
             if (res.statusCode == 404)
-                this._pushAndTag(CURRENT_VERSION, PACKAGE_NAME)
+                this._pushAndTag(CURRENT_VERSION, this.PACKAGE_NAME)
 
             if (res.statusCode == 200) {
                 res.setEncoding("utf8")
@@ -110,7 +112,7 @@ class Action {
                 res.on("end", () => {
                     const existingVersions = JSON.parse(body)
                     if (existingVersions.versions.indexOf(CURRENT_VERSION) < 0)
-                        this._pushAndTag(CURRENT_VERSION, PACKAGE_NAME)
+                        this._pushAndTag(CURRENT_VERSION, this.PACKAGE_NAME)
                 })
             }
         }).on("error", e => {
