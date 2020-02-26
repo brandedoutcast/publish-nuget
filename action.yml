@@ -14,7 +14,7 @@ inputs:
         required: false
         default: <Version>(.*)<\/Version>
     TAG_COMMIT:
-        description: Whether to create a tag when there's a version change or not
+        description: Whether to create a tag when there's a version change
         required: false
         default: true
     TAG_FORMAT:
@@ -23,6 +23,9 @@ inputs:
         default: v*
     NUGET_KEY:
         description: API key for the NuGet feed
+        required: false
+    PACKAGE_NAME:
+        description: NuGet package name, required when it's different from the project name
         required: false
 
 runs:

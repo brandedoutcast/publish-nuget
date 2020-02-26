@@ -9,7 +9,7 @@ name: publish to nuget
 on:
   push:
     branches:
-      - master # Your default release branch
+      - master # Default release branch
 jobs:
   publish:
     name: list on nuget
@@ -34,6 +34,7 @@ jobs:
           # TAG_COMMIT: true # Flag to enable / disalge git tagging
           # TAG_FORMAT: v* # Format of the git tag, [*] gets replaced with version
           # NUGET_KEY: ${{secrets.NUGET_API_KEY}} # nuget.org API key
+          # PACKAGE_NAME: NuGet package name, required when it's different from project name. Defaults to project name
 ```
 
 - With all settings on default, updates to project version are monitored on every push / PR merge to master & a new tag is created
@@ -50,6 +51,7 @@ VERSION_REGEX | `<Version>(.*)<\/Version>` | Regex pattern to extract version in
 TAG_COMMIT | `true` | Flag to enable / disable git tagging
 TAG_FORMAT | `v*` | `[*]` is a placeholder for the actual project version
 NUGET_KEY | | API key to authorize the package upload to nuget.org
+PACKAGE_NAME | | Name of the NuGet package, required when it's different from project name
 
 **Note:**  
 For multiple projects, every input except `PROJECT_FILE_PATH` can be given as `env` variable at [job / workflow level](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#env)

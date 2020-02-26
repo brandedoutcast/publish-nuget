@@ -11,6 +11,7 @@ class Action {
         this.TAG_COMMIT = JSON.parse(process.env.INPUT_TAG_COMMIT || process.env.TAG_COMMIT)
         this.TAG_FORMAT = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.NUGET_KEY = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
+        this.PACKAGE_NAME = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
     }
 
     _warn(msg) {
@@ -74,9 +75,9 @@ class Action {
         }
     }
 
-    _pushAndTag(CURRENT_VERSION, PACKAGE_NAME) {
-        console.log(`👍 found a new version (${CURRENT_VERSION}) of ${PACKAGE_NAME}`)
-        this._tagCommit(CURRENT_VERSION)
+    _pushAndTag(version, name) {
+        console.log(`👍 found a new version (${version}) of ${name}`)
+        this._tagCommit(version)
         this._pushPackage()
     }
 
@@ -93,14 +94,16 @@ class Action {
         if (!VERSION_INFO)
             this._fail("😢 unable to extract version info")
 
-        const CURRENT_VERSION = VERSION_INFO[1],
-            PACKAGE_NAME = path.basename(this.PROJECT_FILE_PATH).split(".").slice(0, -1).join(".")
+        const CURRENT_VERSION = VERSION_INFO[1]
 
-        https.get(`https://api.nuget.org/v3-flatcontainer/${PACKAGE_NAME}/index.json`, res => {
+        if (!this.PACKAGE_NAME)
+            this.PACKAGE_NAME = path.basename(this.PROJECT_FILE_PATH).split(".").slice(0, -1).join(".")
+
+        https.get(`https://api.nuget.org/v3-flatcontainer/${this.PACKAGE_NAME}/index.json`, res => {
             let body = ""
 
             if (res.statusCode == 404)
-                this._pushAndTag(CURRENT_VERSION, PACKAGE_NAME)
+                this._pushAndTag(CURRENT_VERSION, this.PACKAGE_NAME)
 
             if (res.statusCode == 200) {
                 res.setEncoding("utf8")
@@ -108,7 +111,7 @@ class Action {
                 res.on("end", () => {
                     const existingVersions = JSON.parse(body)
                     if (existingVersions.versions.indexOf(CURRENT_VERSION) < 0)
-                        this._pushAndTag(CURRENT_VERSION, PACKAGE_NAME)
+                        this._pushAndTag(CURRENT_VERSION, this.PACKAGE_NAME)
                 })
             }
         }).on("error", e => {
