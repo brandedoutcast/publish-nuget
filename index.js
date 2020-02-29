@@ -44,7 +44,7 @@ class Action {
 
     _pushPackage() {
         if (!this.NUGET_KEY) {
-            this._warn("😢 nuget_key not given")
+            this._warn("😢 NUGET_KEY not given")
             return
         }
 
@@ -53,7 +53,8 @@ class Action {
             return
         }
 
-        this._execInProc(`dotnet pack -c Release ${this.PROJECT_FILE_PATH} -o .`)
+        this._execInProc(`dotnet build -c Release ${this.PROJECT_FILE_PATH}`)
+        this._execInProc(`dotnet pack --no-build -c Release ${this.PROJECT_FILE_PATH} -o .`)
         const NUGET_PUSH_RESPONSE = this._execAndCapture(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${this.NUGET_KEY}`)
         const NUGET_ERROR_REGEX = /(error: Response status code does not indicate success.*)/
 
