@@ -55,7 +55,7 @@ class Action {
 
         this._execInProc(`dotnet build -c Release ${this.PROJECT_FILE_PATH}`)
         this._execInProc(`dotnet pack --no-build -c Release ${this.PROJECT_FILE_PATH} -o .`)
-        const NUGET_PUSH_RESPONSE = this._execAndCapture(`dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${this.NUGET_KEY}`)
+        const NUGET_PUSH_RESPONSE = this._execAndCapture(`dotnet nuget push ${this.PACKAGE_NAME}*.nupkg -s https://api.nuget.org/v3/index.json -k ${this.NUGET_KEY}`)
         const NUGET_ERROR_REGEX = /(error: Response status code does not indicate success.*)/
 
         if (NUGET_ERROR_REGEX.test(NUGET_PUSH_RESPONSE))
