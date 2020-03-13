@@ -84,15 +84,6 @@ class Action {
     }
 
     run() {
-        
-        console.log(`PROJECT_FILE_PATH ${this.PROJECT_FILE_PATH}`)
-        console.log(`VERSION_STATIC ${this.VERSION_STATIC}`)
-        console.log(`VERSION_FILE_PATH ${this.VERSION_FILE_PATH}`)
-        console.log(`VERSION_REGEX ${this.VERSION_REGEX}`)
-        console.log(`TAG_COMMIT ${this.TAG_COMMIT}`)
-        console.log(`TAG_FORMAT ${this.TAG_FORMAT}`)
-        console.log(`PACKAGE_NAME ${this.PACKAGE_NAME}`)
-        
         if (!this.PROJECT_FILE_PATH)
             this._fail("😭 project file not given")
         
@@ -107,7 +98,7 @@ class Action {
                 VERSION_INFO = this.VERSION_REGEX.exec(FILE_CONTENT)
 
             if (!VERSION_INFO)
-                this._fail("😢 unable to extract version info")
+                this._fail("😢 unable to extract version info!")
 
             CURRENT_VERSION = VERSION_INFO[1]
         } else
