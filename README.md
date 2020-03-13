@@ -49,7 +49,7 @@ Input | Default Value | Description
 PROJECT_FILE_PATH | | File path of the project to be packaged, relative to repository root
 VERSION_FILE_PATH | `[PROJECT_FILE_PATH]` | File path containing version info, relative to repository root
 VERSION_REGEX | `<Version>(.*)<\/Version>` | Regex pattern to extract version info in a capturing group
-VERSION_STATIC| |Bypasses version resolution; useful for external providers like Nerdbank.GitVersioning
+VERSION_STATIC| | Bypasses version resolution; useful for external providers like Nerdbank.GitVersioning
 TAG_COMMIT | `true` | Flag to enable / disable git tagging
 TAG_FORMAT | `v*` | `[*]` is a placeholder for the actual project version
 NUGET_KEY | | API key to authorize the package upload to nuget.org
