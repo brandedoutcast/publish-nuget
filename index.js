@@ -97,7 +97,7 @@ class Action {
                 VERSION_INFO = this.VERSION_REGEX.exec(FILE_CONTENT)
 
             if (!VERSION_INFO)
-                this._fail("😢 unable to extract version info")
+                this._fail("😢 unable to extract version info!")
 
             CURRENT_VERSION = VERSION_INFO[1]
         } else
