@@ -91,9 +91,7 @@ class Action {
         
         let CURRENT_VERSION = ""
         
-        if (this.VERSION_STATIC)
-            CURRENT_VERSION = this.VERSION_STATIC
-        else {
+        if (!this.VERSION_STATIC) {
             this.VERSION_FILE_PATH = !this.VERSION_FILE_PATH ? this.PROJECT_FILE_PATH : this._resolveIfExists(this.VERSION_FILE_PATH, "😭 version file not found")
 
             const FILE_CONTENT = fs.readFileSync(this.VERSION_FILE_PATH, { encoding: "utf-8" }),
@@ -102,8 +100,9 @@ class Action {
             if (!VERSION_INFO)
                 this._fail("😢 unable to extract version info")
 
-            const CURRENT_VERSION = VERSION_INFO[1]
-        }
+            CURRENT_VERSION = VERSION_INFO[1]
+        } else
+            CURRENT_VERSION = this.VERSION_STATIC
 
         if (!this.PACKAGE_NAME)
             this.PACKAGE_NAME = path.basename(this.PROJECT_FILE_PATH).split(".").slice(0, -1).join(".")
