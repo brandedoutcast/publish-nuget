@@ -31,6 +31,7 @@ jobs:
           PROJECT_FILE_PATH: Core/Core.csproj # Relative to repository root
           # VERSION_FILE_PATH: Directory.Build.props # Filepath with version info, relative to repository root. Defaults to project file
           # VERSION_REGEX: <Version>(.*)<\/Version> # Regex pattern to extract version info in a capturing group
+          # VERSION_STATIC: Bypasses version resolution, useful for external providers like Nerdbank.GitVersioning
           # TAG_COMMIT: true # Flag to enable / disalge git tagging
           # TAG_FORMAT: v* # Format of the git tag, [*] gets replaced with version
           # NUGET_KEY: ${{secrets.NUGET_API_KEY}} # nuget.org API key
