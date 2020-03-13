@@ -6,9 +6,9 @@ const path = require("path"),
 class Action {
     constructor() {
         this.PROJECT_FILE_PATH = process.env.INPUT_PROJECT_FILE_PATH
-        this.VERSION_STATIC = process.env.INPUT_VERSION_STATIC || process.env.VERSION_STATIC
         this.VERSION_FILE_PATH = process.env.INPUT_VERSION_FILE_PATH || process.env.VERSION_FILE_PATH
         this.VERSION_REGEX = new RegExp(process.env.INPUT_VERSION_REGEX || process.env.VERSION_REGEX)
+        this.VERSION_STATIC = process.env.INPUT_VERSION_STATIC || process.env.VERSION_STATIC
         this.TAG_COMMIT = JSON.parse(process.env.INPUT_TAG_COMMIT || process.env.TAG_COMMIT)
         this.TAG_FORMAT = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.NUGET_KEY = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
@@ -84,18 +84,8 @@ class Action {
     }
 
     run() {
-        
-        console.log(`PROJECT_FILE_PATH ${this.PROJECT_FILE_PATH}`)
-        console.log(`VERSION_STATIC ${this.VERSION_STATIC}`)
-        console.log(`VERSION_FILE_PATH ${this.VERSION_FILE_PATH}`)
-        console.log(`VERSION_REGEX ${this.VERSION_REGEX}`)
-        console.log(`TAG_COMMIT ${this.TAG_COMMIT}`)
-        console.log(`TAG_FORMAT ${this.TAG_FORMAT}`)
-        console.log(`PACKAGE_NAME ${this.PACKAGE_NAME}`)
-        
         if (!this.PROJECT_FILE_PATH)
             this._fail("😭 project file not given")
-        
         this.PROJECT_FILE_PATH = this._resolveIfExists(this.PROJECT_FILE_PATH, "😭 project file not found")
         
         let CURRENT_VERSION = ""
