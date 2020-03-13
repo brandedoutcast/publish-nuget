@@ -13,6 +13,14 @@ class Action {
         this.TAG_FORMAT = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.NUGET_KEY = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
         this.PACKAGE_NAME = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
+        
+        console.log(`##[info] PROJECT_FILE_PATH ${this.PROJECT_FILE_PATH}`)
+        console.log(`##[info] VERSION_STATIC ${this.VERSION_STATIC}`)
+        console.log(`##[info] VERSION_FILE_PATH ${this.VERSION_FILE_PATH}`)
+        console.log(`##[info] VERSION_REGEX ${this.VERSION_REGEX}`)
+        console.log(`##[info] TAG_COMMIT ${this.TAG_COMMIT}`)
+        console.log(`##[info] TAG_FORMAT ${this.TAG_FORMAT}`)
+        console.log(`##[info] PACKAGE_NAME ${this.PACKAGE_NAME}`)
     }
 
     _warn(msg) {
