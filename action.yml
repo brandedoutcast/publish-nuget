@@ -13,6 +13,9 @@ inputs:
         description: Regex (with version in a capturing group) to extract the version from `VERSION_FILE_PATH`
         required: false
         default: <Version>(.*)<\/Version>
+    VERSION_STATIC:
+        description: Bypasses version resolution; useful for external providers like Nerdbank.GitVersioning
+        required: false
     TAG_COMMIT:
         description: Whether to create a tag when there's a version change
         required: false

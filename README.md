@@ -31,6 +31,7 @@ jobs:
           PROJECT_FILE_PATH: Core/Core.csproj # Relative to repository root
           # VERSION_FILE_PATH: Directory.Build.props # Filepath with version info, relative to repository root. Defaults to project file
           # VERSION_REGEX: <Version>(.*)<\/Version> # Regex pattern to extract version info in a capturing group
+          # VERSION_STATIC: Bypasses version resolution; useful for external providers like Nerdbank.GitVersioning
           # TAG_COMMIT: true # Flag to enable / disalge git tagging
           # TAG_FORMAT: v* # Format of the git tag, [*] gets replaced with version
           # NUGET_KEY: ${{secrets.NUGET_API_KEY}} # nuget.org API key
@@ -48,6 +49,7 @@ Input | Default Value | Description
 PROJECT_FILE_PATH | | File path of the project to be packaged, relative to repository root
 VERSION_FILE_PATH | `[PROJECT_FILE_PATH]` | File path containing version info, relative to repository root
 VERSION_REGEX | `<Version>(.*)<\/Version>` | Regex pattern to extract version info in a capturing group
+VERSION_STATIC| | Bypasses version resolution; useful for external providers like Nerdbank.GitVersioning
 TAG_COMMIT | `true` | Flag to enable / disable git tagging
 TAG_FORMAT | `v*` | `[*]` is a placeholder for the actual project version
 NUGET_KEY | | API key to authorize the package upload to nuget.org

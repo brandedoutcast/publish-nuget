@@ -8,6 +8,7 @@ class Action {
         this.PROJECT_FILE_PATH = process.env.INPUT_PROJECT_FILE_PATH
         this.VERSION_FILE_PATH = process.env.INPUT_VERSION_FILE_PATH || process.env.VERSION_FILE_PATH
         this.VERSION_REGEX = new RegExp(process.env.INPUT_VERSION_REGEX || process.env.VERSION_REGEX)
+        this.VERSION_STATIC = process.env.INPUT_VERSION_STATIC || process.env.VERSION_STATIC
         this.TAG_COMMIT = JSON.parse(process.env.INPUT_TAG_COMMIT || process.env.TAG_COMMIT)
         this.TAG_FORMAT = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.NUGET_KEY = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
@@ -85,17 +86,22 @@ class Action {
     run() {
         if (!this.PROJECT_FILE_PATH)
             this._fail("😭 project file not given")
-
         this.PROJECT_FILE_PATH = this._resolveIfExists(this.PROJECT_FILE_PATH, "😭 project file not found")
-        this.VERSION_FILE_PATH = !this.VERSION_FILE_PATH ? this.PROJECT_FILE_PATH : this._resolveIfExists(this.VERSION_FILE_PATH, "😭 version file not found")
+        
+        let CURRENT_VERSION = ""
+        
+        if (!this.VERSION_STATIC) {
+            this.VERSION_FILE_PATH = !this.VERSION_FILE_PATH ? this.PROJECT_FILE_PATH : this._resolveIfExists(this.VERSION_FILE_PATH, "😭 version file not found")
 
-        const FILE_CONTENT = fs.readFileSync(this.VERSION_FILE_PATH, { encoding: "utf-8" }),
-            VERSION_INFO = this.VERSION_REGEX.exec(FILE_CONTENT)
+            const FILE_CONTENT = fs.readFileSync(this.VERSION_FILE_PATH, { encoding: "utf-8" }),
+                VERSION_INFO = this.VERSION_REGEX.exec(FILE_CONTENT)
 
-        if (!VERSION_INFO)
-            this._fail("😢 unable to extract version info")
+            if (!VERSION_INFO)
+                this._fail("😢 unable to extract version info!")
 
-        const CURRENT_VERSION = VERSION_INFO[1]
+            CURRENT_VERSION = VERSION_INFO[1]
+        } else
+            CURRENT_VERSION = this.VERSION_STATIC
 
         if (!this.PACKAGE_NAME)
             this.PACKAGE_NAME = path.basename(this.PROJECT_FILE_PATH).split(".").slice(0, -1).join(".")
