@@ -43,7 +43,7 @@ class Action {
         return FULLPATH
     }
 
-    _pushPackage() {
+    _pushPackage(version) {
         if (!this.NUGET_KEY) {
             this._warn("😢 NUGET_KEY not given")
             return
@@ -55,7 +55,7 @@ class Action {
         }
 
         this._execInProc(`dotnet build -c Release ${this.PROJECT_FILE_PATH}`)
-        this._execInProc(`dotnet pack --no-build -c Release ${this.PROJECT_FILE_PATH} -o .`)
+        this._execInProc(`dotnet pack --no-build -c Release ${this.PROJECT_FILE_PATH} -p:PackageId=${this.PACKAGE_NAME} -p:PackageVersion=${version} -o .`)
         const NUGET_PUSH_RESPONSE = this._execAndCapture(`dotnet nuget push ${this.PACKAGE_NAME}*.nupkg -s https://api.nuget.org/v3/index.json -k ${this.NUGET_KEY}`)
         const NUGET_ERROR_REGEX = /(error: Response status code does not indicate success.*)/
 
@@ -80,7 +80,7 @@ class Action {
     _pushAndTag(version, name) {
         console.log(`👍 found a new version (${version}) of ${name}`)
         this._tagCommit(version)
-        this._pushPackage()
+        this._pushPackage(version)
     }
 
     run() {
