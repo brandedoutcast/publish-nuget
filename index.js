@@ -37,9 +37,12 @@ class Action {
         this._execCmd(cmd, { encoding: "utf-8", stdio: [process.stdin, process.stdout, process.stderr] })
     }
 
-    _resolveIfExists(filePath, msg) {
+    _resolveIfExists(filePath, errMsg) {
         const FULLPATH = path.resolve(process.env.GITHUB_WORKSPACE, filePath)
-        if (!fs.existsSync(FULLPATH)) this._fail(msg)
+
+        if (!fs.existsSync(FULLPATH))
+            this._fail(errMsg)
+
         return FULLPATH
     }
 
@@ -56,8 +59,14 @@ class Action {
 
         this._execInProc(`dotnet build -c Release ${this.PROJECT_FILE_PATH}`)
         this._execInProc(`dotnet pack --no-build -c Release ${this.PROJECT_FILE_PATH} -o .`)
-        const NUGET_PUSH_RESPONSE = this._execAndCapture(`dotnet nuget push ${this.PACKAGE_NAME}*.nupkg -s https://api.nuget.org/v3/index.json -k ${this.NUGET_KEY}`)
+
+        const generatedPackage = fs.readdirSync(".").filter(fn => fn.startsWith(this.PACKAGE_NAME) && fn.endsWith(".nupkg")).shift()
+        console.log(`Generated Package: ${generatedPackage}`)
+
+        const NUGET_PUSH_RESPONSE = this._execAndCapture(`dotnet nuget push ${generatedPackage} -s https://api.nuget.org/v3/index.json -k ${this.NUGET_KEY}`)
         const NUGET_ERROR_REGEX = /(error: Response status code does not indicate success.*)/
+
+        console.log(NUGET_PUSH_RESPONSE)
 
         if (NUGET_ERROR_REGEX.test(NUGET_PUSH_RESPONSE))
             this._fail(`😭 ${NUGET_ERROR_REGEX.exec(NUGET_PUSH_RESPONSE)[1]}`)
@@ -86,12 +95,17 @@ class Action {
     run() {
         if (!this.PROJECT_FILE_PATH)
             this._fail("😭 project file not given")
+
         this.PROJECT_FILE_PATH = this._resolveIfExists(this.PROJECT_FILE_PATH, "😭 project file not found")
-        
-        let CURRENT_VERSION = ""
-        
+
+        console.log(`Project Filepath: ${this.PROJECT_FILE_PATH}`)
+
+        let CURRENT_VERSION
+
         if (!this.VERSION_STATIC) {
             this.VERSION_FILE_PATH = !this.VERSION_FILE_PATH ? this.PROJECT_FILE_PATH : this._resolveIfExists(this.VERSION_FILE_PATH, "😭 version file not found")
+
+            console.log(`Version Filepath: ${this.VERSION_FILE_PATH}`)
 
             const FILE_CONTENT = fs.readFileSync(this.VERSION_FILE_PATH, { encoding: "utf-8" }),
                 VERSION_INFO = this.VERSION_REGEX.exec(FILE_CONTENT)
@@ -103,8 +117,12 @@ class Action {
         } else
             CURRENT_VERSION = this.VERSION_STATIC
 
-        if (!this.PACKAGE_NAME)
+        console.log(`Version: ${CURRENT_VERSION}`)
+
+        if (!this.PACKAGE_NAME) {
             this.PACKAGE_NAME = path.basename(this.PROJECT_FILE_PATH).split(".").slice(0, -1).join(".")
+            console.log(`Package Name: ${this.PACKAGE_NAME}`)
+        }
 
         https.get(`https://api.nuget.org/v3-flatcontainer/${this.PACKAGE_NAME}/index.json`, res => {
             let body = ""
