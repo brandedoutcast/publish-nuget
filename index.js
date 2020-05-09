@@ -14,9 +14,7 @@ class Action {
         this.tagCommit = JSON.parse(process.env.INPUT_TAG_COMMIT || process.env.TAG_COMMIT)
         this.tagFormat = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.nugetKey = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
-        this.nugetSymbolKey = process.env.INPUT_NUGET_SYMBOL_KEY || process.env.NUGET_SYMBOL_KEY || this.nugetKey
         this.nugetSource = process.env.INPUT_NUGET_SOURCE || process.env.NUGET_SOURCE
-        this.nugetSymbolSource = process.env.INPUT_NUGET_SYMBOL_SOURCE || process.env.NUGET_SYMBOL_SOURCE
         this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
     }
 
@@ -56,20 +54,17 @@ class Action {
         }
 
         console.log(`NuGet Source: ${this.nugetSource}`)
-        console.log(`NuGet Symbol Source: ${this.nugetSymbolSource}`)
 
         fs.readdirSync(".").filter(fn => fn.endsWith("nupkg")).forEach(fn => fs.unlinkSync(fn))
 
         this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
 
-        const packSymbolFlags = this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""
-        this._executeInProcess(`dotnet pack ${packSymbolFlags} --no-build -c Release ${this.projectFile} -o .`)
+        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} --no-build -c Release ${this.projectFile} -o .`)
 
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushSymbolFlags = this.includeSymbols ? `-ss ${this.nugetSymbolSource}/v3/index.json -sk ${this.nugetSymbolKey}` : "--no-symbols",
-            pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} ${pushSymbolFlags} --skip-duplicate`,
+        const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} ${!this.includeSymbols ? "--no-symbols" : ""} --skip-duplicate`,
             pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
         console.log(pushOutput)

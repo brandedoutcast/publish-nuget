@@ -30,21 +30,14 @@ inputs:
     NUGET_KEY:
         description: API key to authenticate with NuGet server
         required: false
-    NUGET_SYMBOL_KEY:
-        description: API key to authenticate with NuGet symbols server, defaults to NUGET_KEY
-        required: false
     NUGET_SOURCE:
         description: NuGet server uri hosting the packages, defaults to https://api.nuget.org
         required: false
         default: https://api.nuget.org
-    NUGET_SYMBOL_SOURCE:
-        description: NuGet server uri hosting the symbols, defaults to https://api.nuget.org
-        required: false
-        default: https://api.nuget.org
     INCLUDE_SYMBOLS:
-        description: Flag to toggle pushing symbols along with nuget package to the server, enabled by default
+        description: Flag to toggle pushing symbols along with nuget package to the server, disabled by default
         required: false
-        default: true
+        default: false
 
 outputs:
     VERSION:
