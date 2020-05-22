@@ -55,6 +55,8 @@ class Action {
 
         console.log(`NuGet Source: ${this.nugetSource}`)
 
+        fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
+
         this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
 
         this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} --no-build -c Release ${this.projectFile} -o .`)
