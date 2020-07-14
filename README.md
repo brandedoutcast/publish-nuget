@@ -37,7 +37,7 @@ jobs:
           # VERSION_FILE_PATH: Directory.Build.props
 
           # Regex pattern to extract version info in a capturing group
-          # VERSION_REGEX: <Version>(.*)<\/Version>
+          # VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
           
           # Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
           # VERSION_STATIC: 1.0.0
@@ -67,7 +67,7 @@ Input | Default Value | Description
 PROJECT_FILE_PATH | | Filepath of the project to be packaged, relative to root of repository
 PACKAGE_NAME | | NuGet package id, used for version detection & defaults to project name
 VERSION_FILE_PATH | `[PROJECT_FILE_PATH]` | Filepath with version info, relative to root of repository & defaults to PROJECT_FILE_PATH
-VERSION_REGEX | `<Version>(.*)<\/Version>` | Regex pattern to extract version info in a capturing group
+VERSION_REGEX | `^\s*<Version>(.*)<\/Version>\s*$` | Regex pattern to extract version info in a capturing group
 VERSION_STATIC| | Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
 TAG_COMMIT | `true` | Flag to toggle git tagging, enabled by default
 TAG_FORMAT | `v*` | Format of the git tag, `[*]` gets replaced with actual version
