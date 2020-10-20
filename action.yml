@@ -1,6 +1,6 @@
 name: Publish NuGet 2
 author: Rebel028
-description: Build, Pack & Publish a NuGet package with dotnet core on project version change (temporary fork of https://github.com/brandedoutcast/publish-nuget/)
+description: Temporary fork of https://github.com/brandedoutcast/publish-nuget/
 
 inputs:
     PROJECT_FILE_PATH:
