@@ -16,6 +16,7 @@ class Action {
         this.nugetKey = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
         this.nugetSource = process.env.INPUT_NUGET_SOURCE || process.env.NUGET_SOURCE
         this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
+        this.throwOnVersionExixts = process.env.INPUT_THOW_ERROR_IF_VERSION_EXISTS || process.env.THOW_ERROR_IF_VERSION_EXISTS
     }
 
     _printErrorAndExit(msg) {
@@ -97,16 +98,29 @@ class Action {
         https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
             let body = ""
 
-            if (res.statusCode == 404)
+            if (res.statusCode == 404){
+                console.log(`No packages found. Pushing initial version...`)
                 this._pushPackage(this.version, this.packageName)
+            }
 
             if (res.statusCode == 200) {
                 res.setEncoding("utf8")
                 res.on("data", chunk => body += chunk)
                 res.on("end", () => {
                     const existingVersions = JSON.parse(body)
-                    if (existingVersions.versions.indexOf(this.version) < 0)
+                    if (existingVersions.versions.indexOf(this.version) < 0) {
+                        console.log(`This version is new, pushing...`)
                         this._pushPackage(this.version, this.packageName)
+                    }
+                    else
+                    {
+                        let errorMsg = `Version ${this.version} already exists`;
+                        console.log(errorMsg)
+                        
+                        if(this.throwOnVersionExixts) {
+                            this._printErrorAndExit(`error: ${errorMsg}`)
+                        }
+                    }
                 })
             }
         }).on("error", e => {
