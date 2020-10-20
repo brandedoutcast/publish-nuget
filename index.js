@@ -93,8 +93,16 @@ class Action {
         }
 
         console.log(`Package Name: ${this.packageName}`)
+        let requestUrl = ""
 
-        https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
+        //small hack to get package versions from Github Package Registry
+        if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
+            requestUrl = `${this.nugetSource}/download/${this.packageName}/index.json`
+        } else {
+            requestUrl = `${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`
+        }
+
+        https.get(requestUrl, res => {
             let body = ""
 
             if (res.statusCode == 404)
