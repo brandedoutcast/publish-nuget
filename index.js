@@ -100,12 +100,16 @@ class Action {
         //small hack to get package versions from Github Package Registry
         if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
             requestUrl = `${this.nugetSource}/download/${this.packageName}/index.json`
+            console.log(`This is GPR, changing url for versioning...`)
+            console.log(requestUrl)
         } else {
             requestUrl = `${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`
         }
 
         https.get(requestUrl, res => {
             let body = ""
+            
+            console.log(res)
 
             if (res.statusCode == 404){
                 console.log(`No packages found. Pushing initial version...`)
