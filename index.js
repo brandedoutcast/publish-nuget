@@ -109,14 +109,13 @@ class Action {
         https.get(requestUrl, res => {
             let body = ""
             
-            console.log(res)
+            console.log(`Status code: ${res.statusCode}: ${res.statusMessage}`)
 
             if (res.statusCode == 404){
                 console.log(`No packages found. Pushing initial version...`)
                 this._pushPackage(this.version, this.packageName)
-            }
-
-            if (res.statusCode == 200) {
+            } 
+            else if (res.statusCode == 200) {
                 res.setEncoding("utf8")
                 res.on("data", chunk => body += chunk)
                 res.on("end", () => {
@@ -136,6 +135,10 @@ class Action {
                     }
                 })
             }
+            else {
+               this._printErrorAndExit(`error: ${res.statusCode}: ${res.statusMessage}`)
+            }
+            
         }).on("error", e => {
             this._printErrorAndExit(`error: ${e.message}`)
         })
