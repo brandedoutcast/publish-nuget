@@ -4,9 +4,11 @@ const os = require("os"),
     https = require("https"),
     spawnSync = require("child_process").spawnSync
 
+const SOURCE_NAME = "default";
+
 class Action {
 
-    SOURCE_NAME = "default";
+    
     
     
     constructor() {
@@ -26,19 +28,17 @@ class Action {
         let addSourceCmd;
         if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
             this.sourceType = "GPR"
-            console.log(this._executeCommand("dotnet nuget list source", { encoding: "utf-8" }).stdout)
-            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${(this.SOURCE_NAME)} --username  ${this.githubUser} --password ${this.nugetKey}`
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey}`
         } else {
             this.sourceType = "NuGet"
-            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${this.SOURCE_NAME}`
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${SOURCE_NAME}`
         }
-        this._executeCommand(addSourceCmd, { encoding: "utf-8" });
-        const list1 = this._executeCommand("dotnet nuget list source", { encoding: "utf-8" }).stdout;
-        const enable = this._executeCommand(`dotnet nuget enable source "${this.SOURCE_NAME}"`, { encoding: "utf-8" }).stdout;
-        const list2 = this._executeCommand("dotnet nuget list source", { encoding: "utf-8" }).stdout;
+        
+        console.log(this._executeCommand(addSourceCmd, { encoding: "utf-8" }).stdout)
+        const list1 = this._executeCommand("dotnet nuget list source", { encoding: "utf8" }).stdout;
+        const enable = this._executeCommand(`dotnet nuget enable source ${SOURCE_NAME}`, { encoding: "utf8" }).stdout;
         console.log(list1);
         console.log(enable);
-        console.log(list2);
     }
 
     _printErrorAndExit(msg) {
@@ -87,7 +87,7 @@ class Action {
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushCmd = `dotnet nuget push *.nupkg -s ${(this.SOURCE_NAME)} ${this.nugetSource !== "GPR"? `-k ${this.nugetKey}`: ""} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`
+        const pushCmd = `dotnet nuget push *.nupkg -s ${(SOURCE_NAME)} ${this.nugetSource !== "GPR"? `-k ${this.nugetKey}`: ""} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`
         
         const pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
