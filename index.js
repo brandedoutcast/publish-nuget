@@ -5,6 +5,10 @@ const os = require("os"),
     spawnSync = require("child_process").spawnSync
 
 class Action {
+
+    SOURCE_NAME = "default";
+    
+    
     constructor() {
         this.projectFile = process.env.INPUT_PROJECT_FILE_PATH
         this.packageName = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
@@ -13,9 +17,22 @@ class Action {
         this.version = process.env.INPUT_VERSION_STATIC || process.env.VERSION_STATIC
         this.tagCommit = JSON.parse(process.env.INPUT_TAG_COMMIT || process.env.TAG_COMMIT)
         this.tagFormat = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
+        this.githubUser = process.env.INPUT_GITHUB_USER || process.env.GITHUB_ACTOR
         this.nugetKey = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
         this.nugetSource = process.env.INPUT_NUGET_SOURCE || process.env.NUGET_SOURCE
         this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
+
+        
+
+        if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
+            this.sourceType = "GPR"
+            const addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${(this.SOURCE_NAME)} --username  ${this.githubUser} --password ${this.nugetKey}`
+            this._executeCommand(addSourceCmd, { encoding: "utf-8" })
+        } else {
+            this.sourceType = "NuGet"
+            const addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${(this.SOURCE_NAME)}`
+            this._executeCommand(addSourceCmd, { encoding: "utf-8" })
+        }
     }
 
     _printErrorAndExit(msg) {
@@ -64,8 +81,9 @@ class Action {
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
-            pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
+        const pushCmd = `dotnet nuget push *.nupkg -s ${(this.SOURCE_NAME)} ${this.nugetSource !== "GPR"? `-k ${this.nugetKey}`: ""} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`
+        
+        const pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
         console.log(pushOutput)
 
@@ -94,15 +112,22 @@ class Action {
 
         console.log(`Package Name: ${this.packageName}`)
         let requestUrl = ""
+        let options;
 
         //small hack to get package versions from Github Package Registry
-        if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
+        if (this.sourceType === "GPR") {
             requestUrl = `${this.nugetSource}/download/${this.packageName}/index.json`
+            options = {
+                auth:{
+                    user: this.githubUser,
+                    pass: this.nugetKey
+                }
+            }
         } else {
             requestUrl = `${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`
         }
 
-        https.get(requestUrl, res => {
+        https.get(requestUrl, options, res => {
             let body = ""
 
             if (res.statusCode == 404)
