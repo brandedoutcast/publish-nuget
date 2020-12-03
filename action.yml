@@ -1,6 +1,6 @@
-name: Publish NuGet
-author: Rohith Reddy (@rohith)
-description: Build, Pack & Publish a NuGet package with dotnet core on project version change
+name: Publish NuGet 2
+author: Rebel028
+description: Temporary fork of https://github.com/brandedoutcast/publish-nuget/
 
 inputs:
     PROJECT_FILE_PATH:
@@ -39,6 +39,10 @@ inputs:
         default: https://api.nuget.org
     INCLUDE_SYMBOLS:
         description: Flag to toggle pushing symbols along with nuget package to the server, disabled by default
+        required: false
+        default: false
+    THOW_ERROR_IF_VERSION_EXISTS:
+        description: Flag to throw an error when trying to publish an existing version of a package
         required: false
         default: false
 

@@ -56,6 +56,9 @@ jobs:
 
           # Flag to toggle pushing symbols along with nuget package to the server, disabled by default
           # INCLUDE_SYMBOLS: false
+          
+          # Flag to throw an error when trying to publish an existing version of a package
+          # THOW_ERROR_IF_VERSION_EXISTS: false
 ```
 
 - Project gets published only if there's a `NUGET_KEY` configured in the repository
@@ -75,6 +78,7 @@ GITHUB_USER |`[GITHUB_ACTOR]` | Required for packages pushed to Github Package R
 NUGET_KEY | | API key to authenticate with NuGet server, or a token, issued for GITHUB_USER if you use GPR
 NUGET_SOURCE | `https://api.nuget.org` | NuGet server uri hosting the packages, defaults to https://api.nuget.org
 INCLUDE_SYMBOLS | `false` | Flag to toggle pushing symbols along with nuget package to the server, disabled by default
+THOW_ERROR_IF_VERSION_EXISTS | `false` | Flag to throw an error when trying to publish an existing version of a package
 
 ## Outputs
 
@@ -88,7 +92,7 @@ SYMBOLS_PACKAGE_PATH | Path to the generated symbols package
 
 **FYI:**
 - Outputs may or may not be set depending on the action inputs or if the action failed
-- `NUGET_SOURCE` must support `/v3-flatcontainer/PACKAGE_NAME/index.json` for version change detection to work
+- ~`NUGET_SOURCE` must support `/v3-flatcontainer/PACKAGE_NAME/index.json` for version change detection to work~
 - Multiple projects can make use of steps to configure each project individually, common inputs between steps can be given as `env` for [job / workflow](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#env)
 
 ## License
