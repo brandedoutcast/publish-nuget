@@ -28,7 +28,7 @@ class Action {
         let addSourceCmd;
         if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
             this.sourceType = "GPR"
-            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey}`
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey} --store-password-in-clear-text`
         } else {
             this.sourceType = "NuGet"
             addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${SOURCE_NAME}`
