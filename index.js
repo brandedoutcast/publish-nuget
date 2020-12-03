@@ -23,15 +23,22 @@ class Action {
         this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
         this.throwOnVersionExixts = process.env.INPUT_THOW_ERROR_IF_VERSION_EXISTS || process.env.THOW_ERROR_IF_VERSION_EXISTS
 
+        let addSourceCmd;
         if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
             this.sourceType = "GPR"
-            const addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${(this.SOURCE_NAME)} --username  ${this.githubUser} --password ${this.nugetKey}`
-            this._executeCommand(addSourceCmd, { encoding: "utf-8" })
+            console.log(this._executeCommand("dotnet nuget list source", { encoding: "utf-8" }).stdout)
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${(this.SOURCE_NAME)} --username  ${this.githubUser} --password ${this.nugetKey}`
         } else {
             this.sourceType = "NuGet"
-            const addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${(this.SOURCE_NAME)}`
-            this._executeCommand(addSourceCmd, { encoding: "utf-8" })
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name ${this.SOURCE_NAME}`
         }
+        this._executeCommand(addSourceCmd, { encoding: "utf-8" });
+        const list1 = this._executeCommand("dotnet nuget list source", { encoding: "utf-8" }).stdout;
+        const enable = this._executeCommand(`dotnet nuget enable source "${this.SOURCE_NAME}"`, { encoding: "utf-8" }).stdout;
+        const list2 = this._executeCommand("dotnet nuget list source", { encoding: "utf-8" }).stdout;
+        console.log(list1);
+        console.log(enable);
+        console.log(list2);
     }
 
     _printErrorAndExit(msg) {
