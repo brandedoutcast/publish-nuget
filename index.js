@@ -132,6 +132,9 @@ class Action {
             url = `${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`
         }
 
+        console.log("TEST!")
+        console.log(url);
+        console.log(options);
 
         https.get(url, options, (res) => {
             let body = ""
