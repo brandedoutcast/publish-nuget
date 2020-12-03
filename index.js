@@ -122,8 +122,8 @@ class Action {
             options = {
                 method: "GET",
                 auth:{
-                    user: this.githubUser,
-                    pass: this.nugetKey
+                    user: `${this.githubUser}`,
+                    pass: `${this.nugetKey}`
                 }
             }
             console.log(`This is GPR, changing url for versioning...`)
