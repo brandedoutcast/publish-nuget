@@ -15,7 +15,7 @@ jobs:
     name: build, pack & publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.5.9
 
       # - name: Setup dotnet
       #   uses: actions/setup-dotnet@v1
@@ -48,7 +48,7 @@ jobs:
           # Format of the git tag, [*] gets replaced with actual version
           # TAG_FORMAT: v*
 
-          # API key to authenticate with NuGet server
+          # API key to authenticate with NuGet server, or a token, issued for GITHUB_USER if you use GPR
           # NUGET_KEY: ${{secrets.NUGET_API_KEY}}
 
           # NuGet server uri hosting the packages, defaults to https://api.nuget.org
@@ -74,7 +74,8 @@ VERSION_REGEX | `^\s*<Version>(.*)<\/Version>\s*$` | Regex pattern to extract ve
 VERSION_STATIC| | Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
 TAG_COMMIT | `true` | Flag to toggle git tagging, enabled by default
 TAG_FORMAT | `v*` | Format of the git tag, `[*]` gets replaced with actual version
-NUGET_KEY | | API key to authenticate with NuGet server
+GITHUB_USER |`[GITHUB_ACTOR]` | Required for packages pushed to Github Package Registry. User allowed to push to repository, defaults to GITHUB_ACTOR (user that triggered the action) 
+NUGET_KEY | | API key to authenticate with NuGet server, or a token, issued for GITHUB_USER if you use GPR
 NUGET_SOURCE | `https://api.nuget.org` | NuGet server uri hosting the packages, defaults to https://api.nuget.org
 INCLUDE_SYMBOLS | `false` | Flag to toggle pushing symbols along with nuget package to the server, disabled by default
 THOW_ERROR_IF_VERSION_EXISTS | `false` | Flag to throw an error when trying to publish an existing version of a package
