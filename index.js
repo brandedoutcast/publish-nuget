@@ -112,29 +112,20 @@ class Action {
         console.log(`Package Name: ${this.packageName}`)
 
         let url = ""
-        let options = {
-            method: "GET"
-        };
+        let options; //used for authentication
 
         //small hack to get package versions from Github Package Registry
         if (this.sourceType === "GPR") {
             url = `${this.nugetSource}/download/${this.packageName}/index.json`
             options = {
                 method: "GET",
-                auth:{
-                    user: `${this.githubUser}`,
-                    pass: `${this.nugetKey}`
-                }
+                auth:`${this.githubUser}:${this.nugetKey}`
             }
             console.log(`This is GPR, changing url for versioning...`)
             console.log(url)
         } else {
             url = `${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`
         }
-
-        console.log("TEST!")
-        console.log(url);
-        console.log(options);
 
         https.get(url, options, (res) => {
             let body = ""
