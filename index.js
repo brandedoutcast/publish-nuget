@@ -112,7 +112,7 @@ class Action {
 
         console.log(`Package Name: ${this.packageName}`)
         let requestUrl = ""
-        let options;
+        let options = {};
 
         //small hack to get package versions from Github Package Registry
         if (this.sourceType === "GPR") {
