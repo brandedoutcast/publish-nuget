@@ -28,7 +28,7 @@ class Action {
         let addSourceCmd;
         if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
             this.sourceType = "GPR"
-            addSourceCmd = `dotnet nuget add source ${this.nugetSource}/v3/index.json --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey} --store-password-in-clear-text`
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource}/index.json --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey} --store-password-in-clear-text`
         } else {
             this.sourceType = "NuGet"
             addSourceCmd = `dotnet nuget add source ${this.nugetSource}/v3/index.json --name=${SOURCE_NAME}`
@@ -79,8 +79,6 @@ class Action {
         console.log(`NuGet Source: ${this.nugetSource}`)
 
         fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
-
-        this._executeInProcess(`dotnet restore ${this.projectFile}`)
         
         this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
 
