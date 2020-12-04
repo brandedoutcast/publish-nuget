@@ -28,10 +28,10 @@ class Action {
         let addSourceCmd;
         if (this.nugetSource.startsWith(`https://nuget.pkg.github.com/`)) {
             this.sourceType = "GPR"
-            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey} --store-password-in-clear-text`
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource}/v3/index.json --name=${(SOURCE_NAME)} --username=${this.githubUser} --password=${this.nugetKey} --store-password-in-clear-text`
         } else {
             this.sourceType = "NuGet"
-            addSourceCmd = `dotnet nuget add source ${this.nugetSource} --name=${SOURCE_NAME}`
+            addSourceCmd = `dotnet nuget add source ${this.nugetSource}/v3/index.json --name=${SOURCE_NAME}`
         }
         
         console.log(this._executeCommand(addSourceCmd, { encoding: "utf-8" }).stdout)
@@ -88,7 +88,7 @@ class Action {
 
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
-
+        
         const pushCmd = `dotnet nuget push *.nupkg -s ${(SOURCE_NAME)} ${this.nugetSource !== "GPR"? `-k ${this.nugetKey}`: ""} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`
         
         const pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
