@@ -2,29 +2,41 @@ const os = require("os"),
     fs = require("fs"),
     path = require("path"),
     https = require("https"),
-    spawnSync = require("child_process").spawnSync
+    spawnSync = require("child_process").spawnSync,
+    core = require('@actions/core');
 
 class Action {
     constructor() {
-        this.projectFile = process.env.INPUT_PROJECT_FILE_PATH
-        this.packageName = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
-        this.versionFile = process.env.INPUT_VERSION_FILE_PATH || process.env.VERSION_FILE_PATH || this.projectFile
-        this.versionRegex = new RegExp(process.env.INPUT_VERSION_REGEX || process.env.VERSION_REGEX, "m")
-        this.version = process.env.INPUT_VERSION_STATIC || process.env.VERSION_STATIC
-        this.tagCommit = JSON.parse(process.env.INPUT_TAG_COMMIT || process.env.TAG_COMMIT)
-        this.tagFormat = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
-        this.nugetKey = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
-        this.nugetSource = process.env.INPUT_NUGET_SOURCE || process.env.NUGET_SOURCE
-        this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
+        this.projectFile = core.getInput('project-file-path')
+        this.packageName = core.getInput('package-name')
+
+        // version flags
+        this.version = core.getInput('version')
+
+        // version extraction
+        this.versionFile = core.getInput('extract-version-file-path') || this.projectFile
+        this.versionRegex = new RegExp(core.getInput('extract-version-regex'), "m")
+
+        this.tagCommit = JSON.parse(core.getInput('tag-commit'))
+        this.tagFormat = core.getInput('tag-format')
+        this.nugetKey = core.getInput('nuget-key')
+        this.nugetSource = core.getInput('nuget-source')
+        this.includeSymbols = JSON.parse(core.getInput('include-symbols'))
+    }
+
+    _validateInputs() {
+        // make sure we don't have badly configured version flags
+        if(this.version && this.versionFile)
+            core.warning("You provided 'version', extract-* keys are being ignored")
     }
 
     _printErrorAndExit(msg) {
-        console.log(`##[error]😭 ${msg}`)
+        core.error(`😭 ${msg}`)
         throw new Error(msg)
     }
 
     _executeCommand(cmd, options) {
-        console.log(`executing: [${cmd}]`)
+        core.info(`executing: [${cmd}]`)
 
         const INPUT = cmd.split(" "), TOOL = INPUT[0], ARGS = INPUT.slice(1)
         return spawnSync(TOOL, ARGS, options)
@@ -45,24 +57,32 @@ class Action {
         process.stdout.write(`::set-output name=VERSION::${TAG}` + os.EOL)
     }
 
+    _generatePackArgs() {
+        var args = `--no-build -c Release -p:PackageVersion=${this.version}`;
+
+        if(this.includeSymbols)
+            args = args + ' --include-symbols -p:SymbolPackageFormat=snupkg'
+
+        return args;
+    }
     _pushPackage(version, name) {
-        console.log(`✨ found new version (${version}) of ${name}`)
+        core.info(`✨ found new version (${version}) of ${name}`)
 
         if (!this.nugetKey) {
-            console.log("##[warning]😢 NUGET_KEY not given")
+            core.warning("😢 NUGET_KEY not given")
             return
         }
 
-        console.log(`NuGet Source: ${this.nugetSource}`)
+        core.info(`NuGet Source: ${this.nugetSource}`)
 
         fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
 
-        this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
+        this._executeInProcess(`dotnet build -c Release ${this.projectFile} /p:Version=${this.version}`)
 
-        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} -p:PackageVersion=${version} --no-build -c Release ${this.projectFile} -o .`)
+        this._executeInProcess(`dotnet pack ${this._generatePackArgs()} ${this.projectFile} -o .`)
 
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
-        console.log(`Generated Package(s): ${packages.join(", ")}`)
+        core.info(`Generated Package(s): ${packages.join(", ")}`)
 
         const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
             pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
@@ -75,12 +95,12 @@ class Action {
         const packageFilename = packages.filter(p => p.endsWith(".nupkg"))[0],
             symbolsFilename = packages.filter(p => p.endsWith(".snupkg"))[0]
 
-        process.stdout.write(`::set-output name=PACKAGE_NAME::${packageFilename}` + os.EOL)
-        process.stdout.write(`::set-output name=PACKAGE_PATH::${path.resolve(packageFilename)}` + os.EOL)
+        process.stdout.write(`::set-output name=package-name::${packageFilename}` + os.EOL)
+        process.stdout.write(`::set-output name=package-path::${path.resolve(packageFilename)}` + os.EOL)
 
         if (symbolsFilename) {
-            process.stdout.write(`::set-output name=SYMBOLS_PACKAGE_NAME::${symbolsFilename}` + os.EOL)
-            process.stdout.write(`::set-output name=SYMBOLS_PACKAGE_PATH::${path.resolve(symbolsFilename)}` + os.EOL)
+            process.stdout.write(`::set-output name=symbols-package-name::${symbolsFilename}` + os.EOL)
+            process.stdout.write(`::set-output name=symbols-package-path::${path.resolve(symbolsFilename)}` + os.EOL)
         }
 
         if (this.tagCommit)
@@ -92,7 +112,7 @@ class Action {
             this.packageName = path.basename(this.projectFile).split(".").slice(0, -1).join(".")
         }
 
-        console.log(`Package Name: ${this.packageName}`)
+        core.info(`Package Name: ${this.packageName}`)
 
         https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
             let body = ""
@@ -115,17 +135,21 @@ class Action {
     }
 
     run() {
-        if (!this.projectFile || !fs.existsSync(this.projectFile))
-            this._printErrorAndExit("project file not found")
+        this._validateInputs();
 
-        console.log(`Project Filepath: ${this.projectFile}`)
+        if (!this.projectFile || !fs.existsSync(this.projectFile))
+            this._printErrorAndExit(`Project file '${this.projectFile}' not found`)
+
+        core.info(`Project Filepath: ${this.projectFile}`)
+        core.debug(`Version (pre): '${this.version}'`)
 
         if (!this.version) {
+
             if (this.versionFile !== this.projectFile && !fs.existsSync(this.versionFile))
                 this._printErrorAndExit("version file not found")
 
-            console.log(`Version Filepath: ${this.versionFile}`)
-            console.log(`Version Regex: ${this.versionRegex}`)
+            core.info(`Version Filepath: ${this.versionFile}`)
+            core.info(`Version Regex: ${this.versionRegex}`)
 
             const versionFileContent = fs.readFileSync(this.versionFile, { encoding: "utf-8" }),
                 parsedVersion = this.versionRegex.exec(versionFileContent)
@@ -136,7 +160,7 @@ class Action {
             this.version = parsedVersion[1]
         }
 
-        console.log(`Version: ${this.version}`)
+        core.info(`Version: ${this.version}`)
 
         this._checkForUpdate()
     }
