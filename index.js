@@ -2,7 +2,9 @@ const os = require("os"),
     fs = require("fs"),
     path = require("path"),
     https = require("https"),
-    spawnSync = require("child_process").spawnSync
+    spawnSync = require("child_process").spawnSync,
+    globfs = require("glob-fs")(),
+    hasGlob = require("has-glob")
 
 class Action {
     constructor() {
@@ -114,7 +116,8 @@ class Action {
         })
     }
 
-    run() {
+    _run_internal()
+    {
         if (!this.projectFile || !fs.existsSync(this.projectFile))
             this._printErrorAndExit("project file not found")
 
@@ -139,6 +142,25 @@ class Action {
         console.log(`Version: ${this.version}`)
 
         this._checkForUpdate()
+    }
+
+    run() {
+        if (!hasGlob(this.projectFile) && !hasGlob(this.versionFile)) {
+            this._run_internal()
+        }
+
+        // it has a glob, now we need to recursively obtain all files
+        // represented in the glob and match them up. After that we
+        // need to reset the projectFile, and versionFile variables on
+        // the object instance each time and call _run_internal() for
+        // each file found that matches in the glob.
+        let tmp = this.projectFile
+        glob.on('include', function (file) {
+            this.projectFile = file.relative
+            this.versionFile = file.relative
+            this._run_internal()
+        })
+        glob.readdirSync(this.projectFile);
     }
 }
 
