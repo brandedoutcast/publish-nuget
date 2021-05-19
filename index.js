@@ -57,7 +57,7 @@ class Action {
 
         console.log(`NuGet Source: ${this.nugetSource}`)
 
-        fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
+        fs.readdirSync(path.dirname(this.projectFile)).filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
 
         this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
 
