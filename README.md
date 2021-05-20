@@ -31,7 +31,7 @@ jobs:
           SOLUTION_FILE_PATH: solution.sln
           
           # Filepath of the project to be packaged, relative to root of repository
-          PROJECT_FILE_PATH: Core/Core.csproj
+          PROJECT_FILE_PATH: **/*.csproj
           
           # Path to store all generated nuget packages, relative to root of repository
           PACKAGE_PATH: artifacts/
