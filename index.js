@@ -2,10 +2,14 @@ const os = require("os"),
     fs = require("fs"),
     path = require("path"),
     https = require("https"),
-    spawnSync = require("child_process").spawnSync
+    spawnSync = require("child_process").spawnSync,
+    globfs = require("glob-fs")(),
+    hasGlob = require("has-glob")
 
 class Action {
     constructor() {
+        this.solutionFile = process.env.SOLUTION_FILE_PATH
+        this.packagePath = process.env.PACKAGE_PATH
         this.projectFile = process.env.INPUT_PROJECT_FILE_PATH
         this.packageName = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
         this.versionFile = process.env.INPUT_VERSION_FILE_PATH || process.env.VERSION_FILE_PATH || this.projectFile
@@ -55,33 +59,13 @@ class Action {
 
         console.log(`NuGet Source: ${this.nugetSource}`)
 
-        fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
-
-        this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
-
-        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} --no-build -c Release ${this.projectFile} -o .`)
-
-        const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
-        console.log(`Generated Package(s): ${packages.join(", ")}`)
-
-        const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
+        const pushCmd = `dotnet nuget push ${this.packagePath}/${name}.${version}.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
             pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
         console.log(pushOutput)
 
         if (/error/.test(pushOutput))
             this._printErrorAndExit(`${/error.*/.exec(pushOutput)[0]}`)
-
-        const packageFilename = packages.filter(p => p.endsWith(".nupkg"))[0],
-            symbolsFilename = packages.filter(p => p.endsWith(".snupkg"))[0]
-
-        process.stdout.write(`::set-output name=PACKAGE_NAME::${packageFilename}` + os.EOL)
-        process.stdout.write(`::set-output name=PACKAGE_PATH::${path.resolve(packageFilename)}` + os.EOL)
-
-        if (symbolsFilename) {
-            process.stdout.write(`::set-output name=SYMBOLS_PACKAGE_NAME::${symbolsFilename}` + os.EOL)
-            process.stdout.write(`::set-output name=SYMBOLS_PACKAGE_PATH::${path.resolve(symbolsFilename)}` + os.EOL)
-        }
 
         if (this.tagCommit)
             this._tagCommit(version)
@@ -114,7 +98,8 @@ class Action {
         })
     }
 
-    run() {
+    _run_internal()
+    {
         if (!this.projectFile || !fs.existsSync(this.projectFile))
             this._printErrorAndExit("project file not found")
 
@@ -139,6 +124,52 @@ class Action {
         console.log(`Version: ${this.version}`)
 
         this._checkForUpdate()
+    }
+
+    run() {
+        if (!this.solutionFile || !fs.existsSync(this.solutionFile)) {
+            this._printErrorAndExit("solution file not found")
+        }
+
+        if (!this.packagePath || !fs.existsSync(this.packagePath)) {
+            this._printErrorAndExit("PACKAGE_PATH not provided.")
+        }
+
+        // nuke ane normal .nupkg/.snupkg inside the user specified package path
+        // and then build the packages for the resulting projects inside of the
+        // solution file specified.
+        fs.readdirSync(this.packagePath).filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
+        this._executeInProcess(`dotnet build -c Release ${this.solutionFile}`)
+        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} --no-build --no-restore -c Release ${this.solutionFile} -o ${this.packagePath}`)
+        const packages = fs.readdirSync(this.packagePath).filter(fn => fn.endsWith("nupkg"))
+        console.log(`Generated Package(s): ${packages.join(", ")}`)
+
+        // TODO: output all of the package names and paths.
+        const packageFilename = packages.filter(p => p.endsWith(".nupkg"))[0],
+            symbolsFilename = packages.filter(p => p.endsWith(".snupkg"))[0]
+        process.stdout.write(`::set-output name=PACKAGE_NAME::${packageFilename}` + os.EOL)
+        process.stdout.write(`::set-output name=PACKAGE_PATH::${path.resolve(packageFilename)}` + os.EOL)
+        if (symbolsFilename) {
+            process.stdout.write(`::set-output name=SYMBOLS_PACKAGE_NAME::${symbolsFilename}` + os.EOL)
+            process.stdout.write(`::set-output name=SYMBOLS_PACKAGE_PATH::${path.resolve(symbolsFilename)}` + os.EOL)
+        }
+
+        if (!hasGlob(this.projectFile) && !hasGlob(this.versionFile)) {
+            this._run_internal()
+        }
+
+        // it has a glob, now we need to recursively obtain all files
+        // represented in the glob and match them up. After that we
+        // need to reset the projectFile, and versionFile variables on
+        // the object instance each time and call _run_internal() for
+        // each file found that matches in the glob.
+        let tmp = this.projectFile
+        glob.on('include', function (file) {
+            this.projectFile = file.relative
+            this.versionFile = file.relative
+            this._run_internal()
+        })
+        glob.readdirSync(this.projectFile);
     }
 }
 

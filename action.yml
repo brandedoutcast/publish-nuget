@@ -3,8 +3,14 @@ author: Rohith Reddy (@rohith)
 description: Build, Pack & Publish a NuGet package with dotnet core on project version change
 
 inputs:
+    SOLUTION_FILE_PATH:
+        description: Filepath of the solution of which contains all the projects to be packed, relative to root of repository
+        required: true
     PROJECT_FILE_PATH:
-        description: Filepath of the project to be packaged, relative to root of repository
+        description: Filepath of the project to be packaged or a glob of projects in the form of **/*.csproj, relative to root of repository
+        required: true
+    PACKAGE_PATH:
+        description: Path to store all generated nuget packages, relative to root of repository
         required: true
     PACKAGE_NAME:
         description: NuGet package id, used for version detection & defaults to project name
