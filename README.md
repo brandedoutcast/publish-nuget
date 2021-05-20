@@ -27,8 +27,14 @@ jobs:
         id: publish_nuget
         uses: rohith/publish-nuget@v2
         with:
+          # Filepath of the solution of which contains all the projects to be packed, relative to root of repository
+          SOLUTION_FILE_PATH: solution.sln
+          
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: Core/Core.csproj
+          
+          # Path to store all generated nuget packages, relative to root of repository
+          PACKAGE_PATH: artifacts/
           
           # NuGet package id, used for version detection & defaults to project name
           # PACKAGE_NAME: Core
@@ -64,7 +70,9 @@ jobs:
 
 Input | Default Value | Description
 --- | --- | ---
-PROJECT_FILE_PATH | | Filepath of the project to be packaged, relative to root of repository
+SOLUTION_FILE_PATH | | Filepath of the solution of which contains all the projects to be packed, relative to root of repository
+PROJECT_FILE_PATH | | Filepath of the project to be packaged or a glob of projects in the form of \*\*/\*.csproj, relative to root of repository
+PACKAGE_PATH | | Path to store all generated nuget packages, relative to root of repository
 PACKAGE_NAME | | NuGet package id, used for version detection & defaults to project name
 VERSION_FILE_PATH | `[PROJECT_FILE_PATH]` | Filepath with version info, relative to root of repository & defaults to PROJECT_FILE_PATH
 VERSION_REGEX | `^\s*<Version>(.*)<\/Version>\s*$` | Regex pattern to extract version info in a capturing group
@@ -88,7 +96,7 @@ SYMBOLS_PACKAGE_PATH | Path to the generated symbols package
 **FYI:**
 - Outputs may or may not be set depending on the action inputs or if the action failed
 - `NUGET_SOURCE` must support `/v3-flatcontainer/PACKAGE_NAME/index.json` for version change detection to work
-- Multiple projects can make use of steps to configure each project individually, common inputs between steps can be given as `env` for [job / workflow](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#env)
+- Multiple projects can use file globbing to package each of them up and push them.
 
 ## License
 [MIT](LICENSE)
