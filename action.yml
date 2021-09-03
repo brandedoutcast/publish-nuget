@@ -9,9 +9,11 @@ inputs:
     BUILD_CONFIGURATION:
         description: Configuration to build and package (default is Release)
         required: false
+        default: Release
     BUILD_PLATFORM:
         description: Platform target to compile (default is empty/Any-CPU)
         required: false
+        default: 
     PACKAGE_NAME:
         description: NuGet package id, used for version detection & defaults to project name
         required: false
