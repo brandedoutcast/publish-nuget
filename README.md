@@ -30,6 +30,12 @@ jobs:
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: Core/Core.csproj
           
+          # Configuration to build and package
+          # BUILD_CONFIGURATION: Release
+          
+          # Platform target to compile (default is empty/AnyCPU)
+          # BUILD_PLATFORM: x64          
+          
           # NuGet package id, used for version detection & defaults to project name
           # PACKAGE_NAME: Core
           
