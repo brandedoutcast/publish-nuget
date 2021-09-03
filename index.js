@@ -7,8 +7,8 @@ const os = require("os"),
 class Action {
     constructor() {
         this.projectFile = process.env.INPUT_PROJECT_FILE_PATH
-        this.configuration = process.env.BUILD_CONFIGURATION || "Release"
-        this.platform = process.env.BUILD_PLATFORM || ""
+        this.configuration = process.env.INPUT_BUILD_CONFIGURATION
+        this.platform = process.env.INPUT_BUILD_PLATFORM
         this.packageName = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
         this.versionFile = process.env.INPUT_VERSION_FILE_PATH || process.env.VERSION_FILE_PATH || this.projectFile
         this.versionRegex = new RegExp(process.env.INPUT_VERSION_REGEX || process.env.VERSION_REGEX, "m")
