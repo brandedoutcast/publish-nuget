@@ -11,7 +11,7 @@ inputs:
         required: false
         default: Release
     BUILD_PLATFORM:
-        description: Platform target to compile (default is empty/Any-CPU)
+        description: Platform target to compile (default is empty/AnyCPU)
         required: false
         default: 
     PACKAGE_NAME:
