@@ -71,6 +71,8 @@ jobs:
 Input | Default Value | Description
 --- | --- | ---
 PROJECT_FILE_PATH | | Filepath of the project to be packaged, relative to root of repository
+BUILD_CONFIGURATION | `Release` | Configuration to build and package
+BUILD_PLATFORM | | Platform target to compile
 PACKAGE_NAME | | NuGet package id, used for version detection & defaults to project name
 VERSION_FILE_PATH | `[PROJECT_FILE_PATH]` | Filepath with version info, relative to root of repository & defaults to PROJECT_FILE_PATH
 VERSION_REGEX | `^\s*<Version>(.*)<\/Version>\s*$` | Regex pattern to extract version info in a capturing group
