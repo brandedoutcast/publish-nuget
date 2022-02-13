@@ -27,7 +27,7 @@ class Action {
     _validateInputs() {
         // make sure we don't have badly configured version flags
         if(this.version && this.versionFile)
-            core.warning("You provided 'version', extract-* keys are being ignored")
+            core.info("You provided 'version', extract-* keys are being ignored")
     }
 
     _printErrorAndExit(msg) {
