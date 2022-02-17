@@ -84,14 +84,15 @@ class Action {
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         core.info(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
-            pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
+        packages.forEach(package => {
+            const pushCmd = `dotnet nuget push ${package} -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`
+            const pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout    
+            console.log(pushOutput)
 
-        console.log(pushOutput)
-
-        if (/error/.test(pushOutput))
-            this._printErrorAndExit(`${/error.*/.exec(pushOutput)[0]}`)
-
+            if (/error/.test(pushOutput))
+                this._printErrorAndExit(`${/error.*/.exec(pushOutput)[0]}`)
+        });
+        
         const packageFilename = packages.filter(p => p.endsWith(".nupkg"))[0],
             symbolsFilename = packages.filter(p => p.endsWith(".snupkg"))[0]
 
