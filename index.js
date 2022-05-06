@@ -60,14 +60,14 @@ class Action {
 
         fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
 
-        this._executeInProcess(`dotnet build -c ${this.configuration} ${this.projectFile} -p:Platform=${this.platform}`)
+        this._executeInProcess(`dotnet build --configuration ${this.configuration} ${this.projectFile} -property:Platform=${this.platform}`)
 
-        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} -p:NuspecFile=${this.nuspecFile} --no-build -c ${this.configuration} ${this.projectFile} -p:Platform=${this.platform} -o .`)
+        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -property:SymbolPackageFormat=snupkg" : ""} -property:NuspecFile=${this.nuspecFile} --no-build --configuration ${this.configuration} ${this.projectFile} -property:Platform=${this.platform} --output .`)
 
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
+        const pushCmd = `dotnet nuget push *.nupkg --source ${this.nugetSource}/v3/index.json --api-key ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "--no-symbols" : ""}`,
             pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
         console.log(pushOutput)
