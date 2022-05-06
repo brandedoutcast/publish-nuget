@@ -9,7 +9,11 @@ inputs:
     BUILD_CONFIGURATION:
         description: Configuration to build and package (default is Release)
         required: false
-        default: Release
+        default: Release        
+    NUSPEC_FILE:
+        description: file path to nuspec file
+        required: false
+        default: 
     BUILD_PLATFORM:
         description: Platform target to compile (default is empty/AnyCPU)
         required: false
