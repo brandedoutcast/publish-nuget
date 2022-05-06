@@ -17,6 +17,7 @@ class Action {
         this.tagFormat = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.nugetKey = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
         this.nugetSource = process.env.INPUT_NUGET_SOURCE || process.env.NUGET_SOURCE
+        this.nuspecFile = process.env.INPUT_NUSPEC_FILE
         this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
     }
 
@@ -61,7 +62,7 @@ class Action {
 
         this._executeInProcess(`dotnet build -c ${this.configuration} ${this.projectFile} -p:Platform=${this.platform}`)
 
-        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} --no-build -c ${this.configuration} ${this.projectFile} -p:Platform=${this.platform} -o .`)
+        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} -p:NuspecFile=${this.nuspecFile} --no-build -c ${this.configuration} ${this.projectFile} -p:Platform=${this.platform} -o .`)
 
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
