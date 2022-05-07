@@ -9,7 +9,7 @@ name: publish to nuget
 on:
   push:
     branches:
-      - main # Default release branch
+      - main # Default release branch, may also be named 'master' or 'develop'
 jobs:
   publish:
     name: build, pack & publish
