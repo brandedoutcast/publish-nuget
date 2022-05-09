@@ -6,6 +6,18 @@ inputs:
     PROJECT_FILE_PATH:
         description: Filepath of the project to be packaged, relative to root of repository
         required: true
+    BUILD_CONFIGURATION:
+        description: Configuration to build and package (default is Release)
+        required: false
+        default: Release 
+    BUILD_PLATFORM:
+        description: Platform target to compile (default is empty/AnyCPU)
+        required: false
+        default: 
+    NUSPEC_FILE:
+        description: file path to nuspec file
+        required: false
+        default:
     PACKAGE_NAME:
         description: NuGet package id, used for version detection & defaults to project name
         required: false

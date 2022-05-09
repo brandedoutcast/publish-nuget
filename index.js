@@ -7,6 +7,8 @@ const os = require("os"),
 class Action {
     constructor() {
         this.projectFile = process.env.INPUT_PROJECT_FILE_PATH
+        this.configuration = process.env.INPUT_BUILD_CONFIGURATION
+        this.platform = process.env.INPUT_BUILD_PLATFORM
         this.packageName = process.env.INPUT_PACKAGE_NAME || process.env.PACKAGE_NAME
         this.versionFile = process.env.INPUT_VERSION_FILE_PATH || process.env.VERSION_FILE_PATH || this.projectFile
         this.versionRegex = new RegExp(process.env.INPUT_VERSION_REGEX || process.env.VERSION_REGEX, "m")
@@ -15,6 +17,7 @@ class Action {
         this.tagFormat = process.env.INPUT_TAG_FORMAT || process.env.TAG_FORMAT
         this.nugetKey = process.env.INPUT_NUGET_KEY || process.env.NUGET_KEY
         this.nugetSource = process.env.INPUT_NUGET_SOURCE || process.env.NUGET_SOURCE
+        this.nuspecFile = process.env.INPUT_NUSPEC_FILE
         this.includeSymbols = JSON.parse(process.env.INPUT_INCLUDE_SYMBOLS || process.env.INCLUDE_SYMBOLS)
     }
 
@@ -57,14 +60,14 @@ class Action {
 
         fs.readdirSync(".").filter(fn => /\.s?nupkg$/.test(fn)).forEach(fn => fs.unlinkSync(fn))
 
-        this._executeInProcess(`dotnet build -c Release ${this.projectFile}`)
+        this._executeInProcess(`dotnet build --configuration ${this.configuration} ${this.projectFile} -property:Platform=${this.platform}`)
 
-        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -p:SymbolPackageFormat=snupkg" : ""} --no-build -c Release ${this.projectFile} -o .`)
+        this._executeInProcess(`dotnet pack ${this.includeSymbols ? "--include-symbols -property:SymbolPackageFormat=snupkg" : ""} -property:NuspecFile=${this.nuspecFile} --no-build --configuration ${this.configuration} ${this.projectFile} -property:Platform=${this.platform} --output .`)
 
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushCmd = `dotnet nuget push *.nupkg -s ${this.nugetSource}/v3/index.json -k ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "-n 1" : ""}`,
+        const pushCmd = `dotnet nuget push *.nupkg --source ${this.nugetSource}/v3/index.json --api-key ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "--no-symbols" : ""}`,
             pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
         console.log(pushOutput)
