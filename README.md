@@ -62,6 +62,9 @@ jobs:
 
           # Flag to toggle pushing symbols along with nuget package to the server, disabled by default
           # INCLUDE_SYMBOLS: false
+          
+          # Flag to throw an error when trying to publish an existing version of a package
+          # THOW_ERROR_IF_VERSION_EXISTS: false
 ```
 
 - Project gets published only if there's a `NUGET_KEY` configured in the repository
@@ -82,6 +85,7 @@ TAG_FORMAT | `v*` | Format of the git tag, `[*]` gets replaced with actual versi
 NUGET_KEY | | API key to authenticate with NuGet server
 NUGET_SOURCE | `https://api.nuget.org` | NuGet server uri hosting the packages, defaults to https://api.nuget.org
 INCLUDE_SYMBOLS | `false` | Flag to toggle pushing symbols along with nuget package to the server, disabled by default
+THOW_ERROR_IF_VERSION_EXISTS | `false` | Flag to throw an error when trying to publish an existing version of a package
 
 ## Outputs
 
