@@ -3,8 +3,6 @@ name: Feature Request
 about: Suggest an idea for this action
 title: "[FEATURE] "
 labels: enhancement
-assignees: brandedoutcast
-
 ---
 
 **Is your feature request related to a problem? Please describe.**
