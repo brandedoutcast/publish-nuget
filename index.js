@@ -97,7 +97,7 @@ class Action {
 
         console.log(`Package Name: ${this.packageName}`)
 
-        https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
+        https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName.toLowerCase()}/index.json`, res => {
             let body = ""
 
             if (res.statusCode == 404)
